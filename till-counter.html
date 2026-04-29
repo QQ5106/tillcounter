@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Till Counter</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #111210;
+  --surface: #1c1d1b;
+  --surface2: #252622;
+  --border: #303230;
+  --accent: #d4a843;
+  --accent2: #b08d35;
+  --green: #5db87a;
+  --red: #d95f5f;
+  --text: #ede9dc;
+  --muted: #7a7a72;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.header .date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+
+/* TOTAL BAR */
+.total-bar {
+  background: var(--accent);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.total-bar .tb-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
+  color: #111;
+}
+.total-bar .tb-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem;
+  letter-spacing: 0.06em;
+  color: #111;
+}
+
+/* DROP BANNER */
+.drop-banner {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.drop-banner .db-cell {
+  flex: 1;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--border);
+}
+.drop-banner .db-cell:last-child { border-right: none; }
+.drop-banner .db-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.drop-banner .db-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+}
+.db-val.neutral { color: var(--text); }
+.db-val.ok { color: var(--green); }
+.db-val.warn { color: var(--red); }
+
+/* BODY */
+.body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* SECTION */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-header {
+  background: var(--surface2);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.sh-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+.sh-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  color: var(--green);
+}
+
+/* DENOM ROWS */
+.denom-list {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.denom-row {
+  display: grid;
+  grid-template-columns: 66px 1fr 20px 76px;
+  align-items: center;
+  gap: 8px;
+}
+
+.d-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.d-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem;
+  padding: 8px 10px;
+  text-align: center;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -moz-appearance: textfield;
+}
+.d-input::-webkit-outer-spin-button,
+.d-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.d-input:focus {
+  outline: none;
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 2px rgba(212,168,67,0.1);
+}
+
+.d-x { color: var(--muted); font-size: 0.72rem; text-align: center; }
+
+.d-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--green);
+  text-align: right;
+}
+
+/* SHIFT INFO */
+.shift-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-row label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.field-row input,
+.field-row select,
+.field-row textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  padding: 8px 11px;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.field-row textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: 'DM Sans', sans-serif;
+}
+.field-row input::placeholder,
+.field-row textarea::placeholder { color: var(--muted); }
+.field-row input:focus,
+.field-row select:focus,
+.field-row textarea:focus { outline: none; border-color: var(--accent2); }
+.field-row select { cursor: pointer; }
+.field-row select option { background: var(--surface2); }
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.1em;
+  border: none;
+  cursor: pointer;
+  border-radius: 7px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: opacity 0.15s, transform 0.1s;
+}
+button:active { transform: scale(0.97); }
+
+.btn-reset {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  flex: 1;
+}
+.btn-reset:hover { color: var(--text); }
+
+.btn-log {
+  background: var(--green);
+  color: #111;
+  flex: 1;
+}
+.btn-log:hover { opacity: 0.88; }
+
+.btn-summary {
+  background: var(--accent);
+  color: #111;
+  flex: 2;
+}
+.btn-summary:hover { opacity: 0.88; }
+
+/* LOG */
+.log-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.log-header {
+  background: var(--surface2);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.log-empty {
+  padding: 18px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.log-entry {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: fadeIn 0.2s ease;
+}
+.log-entry:last-child { border-bottom: none; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.log-entry .le-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-entry .le-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.log-entry .le-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.log-entry .le-amounts {
+  display: flex;
+  gap: 12px;
+}
+
+.log-entry .le-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--muted);
+}
+
+.log-entry .le-chip.total { color: var(--accent); }
+.log-entry .le-chip.drop { color: var(--red); }
+.log-entry .le-chip.remain { color: var(--green); }
+
+.log-entry .le-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.btn-clear-log {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.btn-clear-log:hover { color: var(--red); }
+
+.le-manager-section {
+  margin-top: 6px;
+  border-top: 1px dashed var(--border);
+  padding-top: 6px;
+}
+
+.le-manager-note {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-style: italic;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.le-manager-note::before {
+  content: '★';
+  font-size: 0.7rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.le-add-note {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.le-add-note input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  padding: 5px 8px;
+  flex: 1;
+  transition: border-color 0.15s;
+}
+.le-add-note input::placeholder { color: var(--muted); }
+.le-add-note input:focus { outline: none; border-color: var(--accent2); }
+
+.btn-add-note {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.82rem;
+  padding: 5px 10px;
+  border-radius: 5px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-add-note:hover { border-color: var(--accent2); }
+
+/* MODAL */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  overflow: hidden;
+  animation: pop 0.16s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-head {
+  background: var(--accent);
+  padding: 13px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-head span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  color: #111;
+}
+.modal-head button {
+  background: none;
+  color: #111;
+  padding: 0;
+  font-size: 1rem;
+  opacity: 0.5;
+  letter-spacing: 0;
+}
+.modal-head button:hover { opacity: 1; }
+
+.modal-content {
+  padding: 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.76rem;
+  color: var(--text);
+  line-height: 1.8;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+
+.btn-copy { background: var(--surface2); color: var(--text); border: 1px solid var(--border); flex: 1; }
+.btn-copy:hover { border-color: #555; }
+.btn-print { background: var(--accent); color: #111; flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Till Counter</h1>
+  <div class="date" id="dateDisplay"></div>
+</div>
+
+<div class="total-bar">
+  <span class="tb-label">Total in Drawer</span>
+  <span class="tb-amount" id="grandTotal">$0.00</span>
+</div>
+
+<div class="drop-banner">
+  <div class="db-cell">
+    <span class="db-label">Float Target</span>
+    <span class="db-val neutral">$300.00</span>
+  </div>
+  <div class="db-cell">
+    <span class="db-label">Drop Amount</span>
+    <span class="db-val warn" id="dropCalc">$0.00</span>
+  </div>
+  <div class="db-cell">
+    <span class="db-label">After Drop</span>
+    <span class="db-val ok" id="afterDrop">$0.00</span>
+  </div>
+</div>
+
+<div class="body">
+
+  <!-- BILLS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sh-title">Bills</span>
+      <span class="sh-sub" id="bills-total">$0.00</span>
+    </div>
+    <div class="denom-list" id="bills-list"></div>
+  </div>
+
+  <!-- COINS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sh-title">Coins</span>
+      <span class="sh-sub" id="coins-total">$0.00</span>
+    </div>
+    <div class="denom-list" id="coins-list"></div>
+  </div>
+
+  <!-- SHIFT INFO -->
+  <div class="section">
+    <div class="section-header">
+      <span class="sh-title">Shift Info</span>
+    </div>
+    <div class="shift-body">
+      <div class="field-row">
+        <label>Employee Name</label>
+        <input type="text" id="empName" placeholder="Your name">
+      </div>
+      <div class="field-row">
+        <label>Shift</label>
+        <select id="shift">
+          <option value="Opening">Opening</option>
+          <option value="Closing">Closing</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Notes / Discrepancies</label>
+        <textarea id="notes" placeholder="Anything to flag — short, damaged bills, overages, etc."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-reset" onclick="resetAll()">Clear</button>
+    <button class="btn-log" onclick="logEntry()">Save to Log</button>
+    <button class="btn-summary" onclick="showSummary()">Summary</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-section">
+    <div class="log-header">
+      <span class="sh-title">Shift Log</span>
+      <button class="btn-clear-log" onclick="clearLog()">Clear Log</button>
+    </div>
+    <div id="logContainer">
+      <div class="log-empty" id="logEmpty">No entries yet</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <span>Till Summary</span>
+      <button onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-content" id="summaryText"></div>
+    <div class="modal-foot">
+      <button class="btn-copy" onclick="copyText()">Copy</button>
+      <button class="btn-print" onclick="window.print()">Print</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FLOAT = 300;
+
+const BILLS = [
+  { label: '$100', value: 100 },
+  { label: '$50',  value: 50  },
+  { label: '$20',  value: 20  },
+  { label: '$10',  value: 10  },
+  { label: '$5',   value: 5   },
+  { label: '$1',   value: 1   },
+];
+
+const COINS = [
+  { label: '$0.50', value: 0.50 },
+  { label: '$0.25', value: 0.25 },
+  { label: '$0.10', value: 0.10 },
+  { label: '$0.05', value: 0.05 },
+  { label: '$0.01', value: 0.01 },
+];
+
+var logEntries = JSON.parse(localStorage.getItem('tillLog') || '[]');
+
+function buildRows(denoms, listId) {
+  var container = document.getElementById(listId);
+  denoms.forEach(function(d, i) {
+    var row = document.createElement('div');
+    row.className = 'denom-row';
+    row.innerHTML =
+      '<span class="d-label">' + d.label + '</span>' +
+      '<input class="d-input" type="number" min="0" step="1" id="inp-' + listId + '-' + i + '" placeholder="0" oninput="calc()">' +
+      '<span class="d-x">×</span>' +
+      '<span class="d-sub" id="sub-' + listId + '-' + i + '">$0.00</span>';
+    container.appendChild(row);
+  });
+}
+
+function fmt(n) {
+  return '$' + Math.abs(n).toFixed(2);
+}
+
+function getGrand() {
+  var billsTotal = 0;
+  BILLS.forEach(function(d, i) {
+    var el = document.getElementById('inp-bills-list-' + i);
+    billsTotal += (parseFloat(el ? el.value : 0) || 0) * d.value;
+  });
+  var coinsTotal = 0;
+  COINS.forEach(function(d, i) {
+    var el = document.getElementById('inp-coins-list-' + i);
+    coinsTotal += (parseFloat(el ? el.value : 0) || 0) * d.value;
+  });
+  return { bills: billsTotal, coins: coinsTotal, grand: billsTotal + coinsTotal };
+}
+
+function calc() {
+  var billsTotal = 0;
+  BILLS.forEach(function(d, i) {
+    var el = document.getElementById('inp-bills-list-' + i);
+    var qty = parseFloat(el ? el.value : 0) || 0;
+    var sub = qty * d.value;
+    billsTotal += sub;
+    var subEl = document.getElementById('sub-bills-list-' + i);
+    if (subEl) subEl.textContent = fmt(sub);
+  });
+
+  var coinsTotal = 0;
+  COINS.forEach(function(d, i) {
+    var el = document.getElementById('inp-coins-list-' + i);
+    var qty = parseFloat(el ? el.value : 0) || 0;
+    var sub = qty * d.value;
+    coinsTotal += sub;
+    var subEl = document.getElementById('sub-coins-list-' + i);
+    if (subEl) subEl.textContent = fmt(sub);
+  });
+
+  var grand = billsTotal + coinsTotal;
+  var drop = Math.max(0, grand - FLOAT);
+  var after = grand - drop;
+
+  document.getElementById('bills-total').textContent = fmt(billsTotal);
+  document.getElementById('coins-total').textContent = fmt(coinsTotal);
+  document.getElementById('grandTotal').textContent = fmt(grand);
+
+  var dropEl = document.getElementById('dropCalc');
+  dropEl.textContent = fmt(drop);
+  dropEl.className = 'db-val ' + (drop > 0 ? 'warn' : 'neutral');
+
+  var afterEl = document.getElementById('afterDrop');
+  afterEl.textContent = fmt(after);
+  afterEl.className = 'db-val ' + (after >= FLOAT ? 'ok' : 'warn');
+}
+
+function logEntry() {
+  var name = document.getElementById('empName').value.trim() || 'Unknown';
+  var shift = document.getElementById('shift').value;
+  var notes = document.getElementById('notes').value.trim();
+  var t = getGrand();
+  var drop = Math.max(0, t.grand - FLOAT);
+  var after = t.grand - drop;
+  var now = new Date();
+
+  var entry = {
+    id: now.getTime(),
+    time: now.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
+    name: name,
+    shift: shift,
+    total: t.grand,
+    drop: drop,
+    after: after,
+    notes: notes
+  };
+
+  logEntries.unshift(entry);
+  localStorage.setItem('tillLog', JSON.stringify(logEntries));
+  renderLog();
+
+  var btn = document.querySelector('.btn-log');
+  btn.textContent = 'Saved!';
+  setTimeout(function() { btn.textContent = 'Save to Log'; }, 1500);
+}
+
+function renderLog() {
+  var container = document.getElementById('logContainer');
+  var empty = document.getElementById('logEmpty');
+
+  if (logEntries.length === 0) {
+    container.innerHTML = '<div class="log-empty" id="logEmpty">No entries yet</div>';
+    return;
+  }
+
+  var html = '';
+  logEntries.forEach(function(e) {
+    var managerSection = '<div class="le-manager-section">';
+    if (e.managerNote) {
+      managerSection += '<div class="le-manager-note">' + e.managerNote + '</div>';
+    }
+    managerSection +=
+      '<div class="le-add-note">' +
+        '<input type="text" id="mgr-' + e.id + '" placeholder="Manager note..." value="' + (e.managerNote || '') + '">' +
+        '<button class="btn-add-note" onclick="saveManagerNote(' + e.id + ')">' + (e.managerNote ? 'Update' : 'Add Note') + '</button>' +
+      '</div>' +
+    '</div>';
+
+    html +=
+      '<div class="log-entry" id="entry-' + e.id + '">' +
+        '<div class="le-top">' +
+          '<span class="le-name">' + e.name + ' &mdash; ' + e.shift + '</span>' +
+          '<span class="le-time">' + e.time + '</span>' +
+        '</div>' +
+        '<div class="le-amounts">' +
+          '<span class="le-chip total">Total: ' + fmt(e.total) + '</span>' +
+          '<span class="le-chip drop">Drop: ' + fmt(e.drop) + '</span>' +
+          '<span class="le-chip remain">Left: ' + fmt(e.after) + '</span>' +
+        '</div>' +
+        (e.notes ? '<div class="le-note">' + e.notes + '</div>' : '') +
+        managerSection +
+      '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function saveManagerNote(id) {
+  var input = document.getElementById('mgr-' + id);
+  if (!input) return;
+  var note = input.value.trim();
+  logEntries = logEntries.map(function(e) {
+    if (e.id === id) { e.managerNote = note; }
+    return e;
+  });
+  localStorage.setItem('tillLog', JSON.stringify(logEntries));
+  renderLog();
+}
+
+function clearLog() {
+  if (!confirm('Clear the entire shift log?')) return;
+  logEntries = [];
+  localStorage.setItem('tillLog', '[]');
+  renderLog();
+}
+
+function pad(str, len) {
+  str = String(str);
+  while (str.length < len) str += ' ';
+  return str;
+}
+
+function rpad(str, len) {
+  str = String(str);
+  while (str.length < len) str = ' ' + str;
+  return str;
+}
+
+function showSummary() {
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  var timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  var name = document.getElementById('empName').value.trim() || '—';
+  var shift = document.getElementById('shift').value;
+
+  var lines = [];
+  lines.push('TILL SUMMARY');
+  lines.push('='.repeat(34));
+  lines.push('Date     : ' + dateStr);
+  lines.push('Time     : ' + timeStr);
+  lines.push('Employee : ' + name);
+  lines.push('Shift    : ' + shift);
+  lines.push('='.repeat(34));
+
+  lines.push('');
+  lines.push('BILLS');
+  lines.push('-'.repeat(34));
+  var billsTotal = 0;
+  BILLS.forEach(function(d, i) {
+    var el = document.getElementById('inp-bills-list-' + i);
+    var qty = parseFloat(el ? el.value : 0) || 0;
+    if (qty > 0) {
+      var sub = qty * d.value;
+      billsTotal += sub;
+      lines.push('  ' + pad(d.label, 8) + ' x ' + rpad(qty, 4) + '  =  ' + rpad(fmt(sub), 9));
+    }
+  });
+  if (billsTotal === 0) lines.push('  (none)');
+  lines.push(pad('  Bills Subtotal', 28) + rpad(fmt(billsTotal), 8));
+
+  lines.push('');
+  lines.push('COINS');
+  lines.push('-'.repeat(34));
+  var coinsTotal = 0;
+  COINS.forEach(function(d, i) {
+    var el = document.getElementById('inp-coins-list-' + i);
+    var qty = parseFloat(el ? el.value : 0) || 0;
+    if (qty > 0) {
+      var sub = qty * d.value;
+      coinsTotal += sub;
+      lines.push('  ' + pad(d.label, 8) + ' x ' + rpad(qty, 4) + '  =  ' + rpad(fmt(sub), 9));
+    }
+  });
+  if (coinsTotal === 0) lines.push('  (none)');
+  lines.push(pad('  Coins Subtotal', 28) + rpad(fmt(coinsTotal), 8));
+
+  lines.push('');
+  lines.push('='.repeat(34));
+  var grand = billsTotal + coinsTotal;
+  var drop = Math.max(0, grand - FLOAT);
+  var after = grand - drop;
+  lines.push(pad('  TOTAL IN DRAWER', 28) + rpad(fmt(grand), 8));
+  lines.push(pad('  Float Target', 28) + rpad(fmt(FLOAT), 8));
+  lines.push(pad('  Drop Amount', 28) + rpad(fmt(drop), 8));
+  lines.push(pad('  Remaining in Till', 28) + rpad(fmt(after), 8));
+
+  var notes = document.getElementById('notes').value.trim();
+  if (notes) {
+    lines.push('');
+    lines.push('NOTES');
+    lines.push('-'.repeat(34));
+    lines.push(notes);
+  }
+
+  lines.push('='.repeat(34));
+
+  document.getElementById('summaryText').textContent = lines.join('\n');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('overlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function copyText() {
+  var text = document.getElementById('summaryText').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelector('.btn-copy');
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+function resetAll() {
+  if (!confirm('Clear current count?')) return;
+  document.querySelectorAll('.d-input').forEach(function(el) { el.value = ''; });
+  document.querySelectorAll('.d-sub').forEach(function(el) { el.textContent = '$0.00'; });
+  document.getElementById('empName').value = '';
+  document.getElementById('notes').value = '';
+  calc();
+}
+
+function setDate() {
+  var now = new Date();
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }).toUpperCase();
+}
+
+buildRows(BILLS, 'bills-list');
+buildRows(COINS, 'coins-list');
+setDate();
+renderLog();
+</script>
+</body>
+</html>
